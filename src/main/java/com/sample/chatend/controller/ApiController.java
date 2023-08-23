@@ -5,6 +5,7 @@ import com.sample.chatend.model.UserSession;
 import com.sample.chatend.repository.ChatRepository;
 import com.sample.chatend.repository.UserSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -26,30 +27,39 @@ public class ApiController {
 	public UserSession connectUser(@PathVariable String username,@RequestBody UserSession userWithUpdate){
 		// create a user and/or update  status user true,
 		UserSession user = null;
-		if(user.getStatus() && userRepository.existsById(username)){
+		if(userWithUpdate.getStatus() && userRepository.findUserSessionByUsername(username) != null){
 			user = userRepository.save(userWithUpdate);
 		}else{
-			user = userRepository.save(new UserSession(user.getUsername(), true));
+			var newUser = new UserSession();
+			newUser.setUsername(user.getUsername());
+			newUser.setStatus(true);
+			user = userRepository.save(newUser);
 		}
 		return user;
 	}
 
 	@PutMapping("/user/{username}/leave")
-	public UserSession disconnectUser(@PathVariable String username,@RequestBody UserSession userWithUpdate){
+	public UserSession disconnectUser(@PathVariable String username, @RequestBody UserSession userWithUpdate){
 		//update  status user false,
 		UserSession user = null;
-		if(userRepository.existsById(username)){
-			if(!user.getStatus()){
+		if(userRepository.findUserSessionByUsername(username) != null){
+			if(!userWithUpdate.getStatus()){
 				user = userRepository.save(userWithUpdate);
 			}else{
-				user = userRepository.save(new UserSession(user.getUsername(), false));
+				//No action
 			}
 		}
 		return user;
 	}
 
-	@GetMapping("/chats") //avoid using it, prefer send it Throught a suscribe socket
-	public List<Chat> chatsAll(){
-		return new ArrayList<>((Collection) chatRepository.findAll());
+	@GetMapping("/chats/{session}") //avoid using it, prefer send it Throught a suscribe socket
+	public List<Chat> chatsAll(@PathVariable @Nullable String session){
+		if(session != null){
+			return new ArrayList<>((Collection) chatRepository.findAll());
+		}else if(session == "public" || session == "private" || session == "group"){
+			return chatRepository.findAll(session);
+		}else{
+			return null; //gerer ce cas
+		}
 	}
 }

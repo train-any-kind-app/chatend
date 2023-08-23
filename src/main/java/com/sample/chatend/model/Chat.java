@@ -16,7 +16,6 @@ import java.util.Date;
 public class Chat {
 	@Id
 	private String id;
-
 	private String sender;
 	private String recipent;
 	private String date;

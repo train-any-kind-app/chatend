@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserSessionRepository extends MongoRepository<UserSession, String> {
 	@Query("{username:'?0'}")
-	UserSession findUserSessionByUserSession(String username);
+	UserSession findUserSessionByUsername(String username);
 }
